@@ -12,12 +12,12 @@ genai.configure(api_key=os.getenv('API_KEY'))
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # System message to guide the model to respond in pirate speak
-system_message = "You are a english chatbot. Respond only in old english fancy words speak. Do not reply in normal English."
+system_message = "You are a celeb/figure connecting chatbot. Respond by giving a chain of people to connect the two celebrity/figures that the user will enter in to each other."
 
 # Function to generate responses in pirate speak
 def generate_pirate_response(user_message):
     # Combine the system message with the user's input to guide the model's response
-    prompt = f"{system_message} User: {user_message} Pirate Response:"
+    prompt = f"{system_message} User: {user_message} Response:"
 
     # Generate the response using the model
     response = model.generate_content(prompt)
