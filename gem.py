@@ -1,70 +1,60 @@
-import google.generativeai as genai1
+import openai
+import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
-# Configure the API with your key
-genai1.configure(api_key=os.getenv('API_KEY'))
+# Configure APIs
+genai.configure(api_key=os.getenv('API_KEY'))  # Google Generative AI API Key
+openai.api_key = os.getenv('OPENAI_API_KEY')  # OpenAI API Key
 
-# Initialize the model (use the "gemini-1.5-flash" model or whichever is appropriate)
-model = genai1.GenerativeModel("gemini-1.5-flash")
+# Initialize the Generative AI model
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# System message to guide the model to respond in pirate speak
-system_message = "You are a celeb/ figure connector chatbot. Respond only in chains of people that connect the two people that the user types up."
+# System message for the chatbot
+system_message = (
+    "You are a celeb/figure connecting chatbot. Respond by giving a chain of people to "
+    "connect the two celebrities/figures the user enters."
+)
 
+# Function to generate a chatbot response
+def generate_chatbot_response(user_message):
+    try:
+        prompt = f"{system_message} User: {user_message} Response:"
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error generating chatbot response: {str(e)}"
 
-
-client = genai.Client(api_key=os.getenv('API_KEY'))
-
-def generate_image(message_from_term):
-    print("Available models:")
-    for model_info in genai1.list_models():  
-        print(model_info)
-        # Use genai1.list_models()
-        if 'generateImage' in model_info.supported_generation_methods:
-            print(f"- {model_info.name}: {model_info.description}")
-            print(f"  Supports generateImage")
-    
-    
-    responseI = client.models.generate_image(
-        model='gemini-2.0-flash-exp',
-        prompt=message_from_term,
-        config=types.GenerateImageConfig(
-            negative_prompt= 'people',
-            number_of_images= 1,
-            include_rai_reason= True,
-            output_mime_type= 'image/jpeg'
+# Function to generate an image using the new OpenAI API
+def generate_image(prompt):
+    try:
+        response = openai.Image.create_edit(
+            prompt=prompt,  # The text prompt for the image
+            n=1,  # Number of images to generate
+            size="1024x1024"  # Image resolution
         )
-    )
+        return response['data'][0]['url']  # URL of the generated image
+    except Exception as e:
+        return f"Error generating image: {str(e)}"
 
-    return responseI.generated_images[0].image.show()
-# Function to generate responses in pirate speak
-def generate_response(user_message):
-    # Combine the system message with the user's input to guide the model's response
-    prompt = f"{system_message} User: {user_message} Response:"
-
-    # Generate the response using the model
-    response = model.generate_content(prompt)
-
-    return response.text
-
-# Example of interacting with the chatbot
+# Main chatbot loop
 if __name__ == "__main__":
     while True:
         # Get user input
-        message = input("Type in two figures/celebrities (or type 'exit' to quit): ")
+        user_message = input("Enter your message (or type 'exit' to quit): ")
         
-        if message.lower() == 'exit':
+        if user_message.lower() == 'exit':
             print("Exiting the chat...")
             break
-        else:
-            responseI = generate_image(message)
-        # Get the pirate response
-        response = generate_response(message)
         
-        # Print the pirate response
-        print("Response:", response)
+        # Generate and display the chatbot response
+        chatbot_response = generate_chatbot_response(user_message)
+        print("\nChatbot Response:", chatbot_response)
+        
+        # Generate and display the image URL
+        image_url = generate_image(user_message)
+        print("Generated Image URL:", image_url)
+        print("\n")
