@@ -2,13 +2,15 @@ import openai
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+from googleapiclient.discovery import build
 
 # Load environment variables
 load_dotenv()
 
 # Configure APIs
 genai.configure(api_key=os.getenv('API_KEY'))  # Google Generative AI API Key
-openai.api_key = os.getenv('OPENAI_API_KEY')  # OpenAI API Key
+API_KEY = os.getenv('OPENAI_API_KEY')  # OpenAI API Key
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')  # YouTube API Key
 
 # Initialize the Generative AI model
 model = genai.GenerativeModel("gemini-1.5-flash")
@@ -28,19 +30,26 @@ def generate_chatbot_response(user_message):
     except Exception as e:
         return f"Error generating chatbot response: {str(e)}"
 
-# Function to generate an image using the new OpenAI API
-def generate_image(prompt):
+# Function to search for YouTube videos
+def search_youtube_videos(query):
     try:
-        response = openai.Image.create_edit(
-            prompt=prompt,  # The text prompt for the image
-            n=1,  # Number of images to generate
-            size="1024x1024"  # Image resolution
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        request = youtube.search().list(
+            part="snippet",
+            q=query,
+            type="video",
+            maxResults=1
         )
-        return response['data'][0]['url']  # URL of the generated image
+        response = request.execute()
+        if response['items']:
+            video_id = response['items'][0]['id']['videoId']
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+            return video_url
+        else:
+            return "No videos found."
     except Exception as e:
-        return f"Error generating image: {str(e)}"
+        return f"Error fetching YouTube video: {str(e)}"
 
-# Main chatbot loop
 if __name__ == "__main__":
     while True:
         # Get user input
@@ -50,11 +59,11 @@ if __name__ == "__main__":
             print("Exiting the chat...")
             break
         
-        # Generate and display the chatbot response
+        # Generate chatbot response
         chatbot_response = generate_chatbot_response(user_message)
         print("\nChatbot Response:", chatbot_response)
         
-        # Generate and display the image URL
-        image_url = generate_image(user_message)
-        print("Generated Image URL:", image_url)
+        # Search for YouTube video
+        video_url = search_youtube_videos(user_message)
+        print("\nYouTube Video URL:", video_url)
         print("\n")
