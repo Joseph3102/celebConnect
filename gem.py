@@ -42,13 +42,29 @@ def search_youtube_videos(query):
         )
         response = request.execute()
         if response['items']:
-            video_id = response['items'][0]['id']['videoId']
-            video_url = f"https://www.youtube.com/watch?v={video_id}"
-            return video_url
+            video_id_1 = response['items'][0]['id']['videoId']
+            video_url_1 = f"https://www.youtube.com/watch?v={video_id_1}"
         else:
-            return "No videos found."
+            video_url_1 = "No videos found."
+        
+        # Search for a second video
+        request = youtube.search().list(
+            part="snippet",
+            q=query,
+            type="video",
+            maxResults=1,
+            pageToken=response.get('nextPageToken')
+        )
+        response = request.execute()
+        if response['items']:
+            video_id_2 = response['items'][0]['id']['videoId']
+            video_url_2 = f"https://www.youtube.com/watch?v={video_id_2}"
+        else:
+            video_url_2 = "No videos found."
+
+        return f"{video_url_1} and {video_url_2}"
     except Exception as e:
-        return f"Error fetching YouTube video: {str(e)}"
+        return f"Error fetching YouTube videos: {str(e)}"
 
 if __name__ == "__main__":
     while True:
@@ -63,7 +79,7 @@ if __name__ == "__main__":
         chatbot_response = generate_chatbot_response(user_message)
         print("\nChatbot Response:", chatbot_response)
         
-        # Search for YouTube video
-        video_url = search_youtube_videos(user_message)
-        print("\nYouTube Video URL:", video_url)
+        # Search for YouTube videos
+        video_urls = search_youtube_videos(user_message)
+        print("\nYouTube Video URLs:", video_urls)
         print("\n")
