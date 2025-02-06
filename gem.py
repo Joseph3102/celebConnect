@@ -69,7 +69,7 @@ def search_youtube_videos(query):
 if __name__ == "__main__":
     while True:
         # Get user input
-        user_message = input("Enter your message (or type 'exit' to quit): ")
+        user_message = input("Enter your in your famous person or type 'exit' to quit (make sure to use 'and' to seperate the celebrities/figures): ")
         
         if user_message.lower() == 'exit':
             print("Exiting the chat...")
